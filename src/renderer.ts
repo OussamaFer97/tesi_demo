@@ -26,5 +26,6 @@
  * ```
  */
 
-import './index.css';
+import './styles/index.css';
+import './styles/diagnosis-prob.css';
 import './app';

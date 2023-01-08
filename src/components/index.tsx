@@ -1,1 +1,4 @@
-export * from './ECGPlotAnimation';
+export * from './ECGPlotAnimationNew';
+export * from './DiagnosisTable';
+export * from './DiagnosisProbs';
+export * from './CurrentDiagnosis';
