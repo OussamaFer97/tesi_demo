@@ -24,7 +24,6 @@ function getEcgData(record_name: string, width: number, height: number): [Line, 
 function App() {
   // STATE DEFINITION
   const [recordName, setRecordName] = useState('100');
-  const [segmentIndex, setSegmentIndex] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [totDiagnosis, setTotDiagnosis] = useState([
     { disease: 'SR', active: false },
@@ -44,26 +43,28 @@ function App() {
   ]);
 
   // STATE DERIVATES
-  const ecgData = useMemo(() => getEcgData(recordName, WIDTH, HEIGHT), [recordName]);
-  const ecgSegment = useMemo(() => {
-    const s = segmentIndex * FRAME_TICKS;
-    const e = s + FRAME_TICKS;
-    const data = ecgData.map(leadData => leadData.slice(s, e));
-    const startX = data[0][0].x;
-    return data.map(leadData => leadData.map(({ x, y }) => ({ x: x - startX, y })));
-  }, [ecgData, segmentIndex]);
+  const ecgData = useMemo(() => getEcgData(recordName, WIDTH / 2, HEIGHT), [recordName]);
+  const ecgSegments = useMemo(() => {
+    const segmentsCount = Math.floor(ecgData[0].length / FRAME_TICKS);
+    return [...Array(segmentsCount).keys()].map(i => {
+      const start = i * FRAME_TICKS;
+      const stop = start + FRAME_TICKS;
+      const data = ecgData.map(leadData => leadData.slice(start, stop));
+      const startX = data[0][0].x;
+      return data.map(leadData => leadData.map(({ x, y }) => ({ x: x - startX, y })));
+    });
+  }, [ecgData]);
 
   const onSegmentComplete = useCallback(() => {
-    setSegmentIndex(v => {
-      const nextIndex = v + 1;
-      return nextIndex * FRAME_TICKS < ecgData[0].length ? nextIndex : v;
-    });
     setDiagnosis(d => d.map(v => ({ ...v, prob: Math.random() })));
   }, [ecgData]);
 
   return (
     <main style={{ width: WIDTH }}>
-      <DiagnosisTable patientId={recordName} />
+      <div style={{ display: 'flex', gap: 50 }}>
+        <DiagnosisTable patientId={recordName} />
+        <CurrentDiagnosis diagnosis={totDiagnosis} />
+      </div>
 
       <div className='speed-container'>
         {SPEED_ARRAY.map(s => (
@@ -74,15 +75,14 @@ function App() {
       </div>
 
       <ECGPlotAnimation
-        ecgData={ecgSegment}
+        ecgSegments={ecgSegments}
         speed={speed}
         width={WIDTH}
         height={HEIGHT}
         onComplete={onSegmentComplete}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', height: 350, marginTop: 20 }}>
-        <CurrentDiagnosis diagnosis={totDiagnosis} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', height: 350, marginTop: 35 }}>
         <DiagnosisProbs width={450} diagnosis={diagnosis} />
       </div>
     </main>

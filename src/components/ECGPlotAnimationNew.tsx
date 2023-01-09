@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LinePath } from '@visx/shape';
 
 export type Point = { x: number; y: number }
@@ -6,7 +6,7 @@ export type Line = Point[];
 export type Lines = Line[];
 
 export interface ECGPlotAnimationProps {
-  ecgData: Line[];
+  ecgSegments: Lines[];
   speed: number;
   width: number;
   height: number;
@@ -14,30 +14,37 @@ export interface ECGPlotAnimationProps {
 };
 
 type SHAPE_RENDER_TYPE = 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision';
-const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'auto';
+const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'geometricPrecision';
+const STROKE_WIDTH = 1.2;
 
 const xMap = (p: Point) => p.x;
 const yMap = (p: Point) => p.y;
 
-export function ECGPlotAnimation({ ecgData, speed, width, height, onComplete }: ECGPlotAnimationProps) {
-  const [linesArray, setLines] = useState<[Lines, Lines]>([[], []]);
+export function ECGPlotAnimation({ ecgSegments, speed, width, height, onComplete }: ECGPlotAnimationProps) {
+  const [linesArray, setLines] = useState<[Lines, Lines][]>([[[], []]]);
+  const [segIndex, setSegIndex] = useState(0);
   const i = useRef(0);
   const elapsed = useRef(0);
   const animationId = useRef(0);
 
-  const lead2yMap = useCallback((p: Point) => p.y + height, [height]);
+  const xMaps = useMemo(() => {
+    const halfWidth = width / 2;
+    return [xMap, (p: Point) => p.x + halfWidth];
+  }, [width]);
+  const yMaps = useMemo(() => (
+    [yMap, (p: Point) => p.y + height]
+  ), [height]);
+
+  const onSegmentEnd = useCallback(() => {
+    window.cancelAnimationFrame(animationId.current);
+    i.current = elapsed.current = animationId.current = 0;
+    onComplete();
+    setLines(currLines => [currLines.pop(), [[], []]]);
+    setSegIndex(i => i+1);
+  }, [onComplete]);
 
   useEffect(() => {
-    // stop current animation
-    if (i.current > 0) {
-      window.cancelAnimationFrame(animationId.current);
-      i.current = elapsed.current = animationId.current = 0;
-      setLines([[], []]);
-    }
-  }, [ecgData]);
-
-  useEffect(() => {
-    const [lead1, lead2] = ecgData;
+    const [lead1, lead2] = ecgSegments[segIndex];
     let previousTimeStamp: number | undefined;
 
     const animStep = (timestamp: number) => {
@@ -48,7 +55,7 @@ export function ECGPlotAnimation({ ecgData, speed, width, height, onComplete }: 
       }
 
       if (i.current >= lead1.length) {
-        onComplete();
+        onSegmentEnd();
         return;
       }
       
@@ -63,10 +70,10 @@ export function ECGPlotAnimation({ ecgData, speed, width, height, onComplete }: 
       
       animationId.current = window.requestAnimationFrame(animStep);
       setLines((currLines) => {
-        const [oldLines1, oldLines2] = currLines;
+        const [oldLines1, oldLines2] = currLines.pop();
         oldLines1.push(newLine1);
         oldLines2.push(newLine2);
-        return [oldLines1, oldLines2];
+        return [...currLines, [oldLines1, oldLines2]];
       });
     };
     
@@ -75,65 +82,29 @@ export function ECGPlotAnimation({ ecgData, speed, width, height, onComplete }: 
       animationId.current = window.requestAnimationFrame(animStep);
       return () => window.cancelAnimationFrame(animationId.current);
     }
-  }, [ecgData, speed, width, onComplete]);
+  }, [ecgSegments, segIndex, speed, width, onSegmentEnd]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none', touchAction: 'none' }}>
       <svg width={width} height={height * 2}>
         <rect fill="#dee2e649" width={width} height={height * 2} rx={4} />
-        <line x1='0' x2='100%' y1='25%' y2='25%' style={{ stroke: '#00000022', strokeWidth: 2 }} />
-        <line x1='0' x2='100%' y1='75%' y2='75%' style={{ stroke: '#00000022', strokeWidth: 2 }} />
-        {linesArray[0].map((line, i) => (
+        <line x1='0' x2='100%' y1='25%' y2='25%' />
+        <line x1='0' x2='100%' y1='75%' y2='75%' />
+        <line x1='50%' x2='50%' y1='0%' y2='100%' />
+        {linesArray.map((seg, sIndex) => seg.map((lines, i) => lines.map((line, j) => (
           <LinePath
-            key={`line-${i}`}
+            key={`line-${sIndex}-${j}-${i}`}
             fill="transparent"
             stroke="#001F4A"
-            strokeWidth={2}
+            strokeWidth={STROKE_WIDTH}
             data={line}
             shapeRendering={SHAPE_RENDERING}
-            x={xMap}
-            y={yMap}
+            x={xMaps[sIndex]}
+            y={yMaps[i]}
           />
-        ))}
-        {linesArray[1].map((line, i) => (
-          <LinePath
-            key={`line-${i}`}
-            fill="transparent"
-            stroke="#001F4A"
-            strokeWidth={2}
-            data={line}
-            shapeRendering={SHAPE_RENDERING}
-            x={xMap}
-            y={lead2yMap}
-          />
-        ))}
+        ))))}
+        {segIndex > 0 && <rect fill="#00000037" width={width / 2} height={height * 2} />}
       </svg>
     </div>
   );
 }
-
-
-/* export function ECGPlotAnimation2({ width, height }: ECGPlotAnimationProps) {
-  const hMulti = useMemo(() => height / 18, [height]);
-  const halfHeight = useMemo(() => height / 2, [height]);
-
-  const xMap = useCallback((p: Point) => p.x, []);
-  const yMap = useCallback((p: Point) => p.y * -hMulti + halfHeight, [hMulti, halfHeight]);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none', touchAction: 'none' }}>
-      <svg width={width} height={height} style={{ margin: '1rem 0' }}>
-        <rect fill="#0b7285" width={width} height={height} rx={4} />
-        <LinePath
-          className='svg-animation'
-          fill="transparent"
-          stroke="#e1e6eb"
-          strokeWidth={2}
-          data={ECG_LINE1}
-          x={xMap}
-          y={yMap}
-        />
-      </svg>
-    </div>
-  );
-} */

@@ -9,7 +9,7 @@ main {
   margin: 0 auto;
 }
 
-p {
+p, h3 {
   margin: 0;
 }
 
@@ -19,6 +19,11 @@ table {
 
 table thead {
   text-align: left;
+}
+
+line {
+  stroke: #00000022;
+  stroke-width: 2px;
 }
 
 th, td {
