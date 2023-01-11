@@ -3,6 +3,7 @@ body {
     Arial, sans-serif;
   margin: auto;
   padding: 2rem;
+  padding-bottom: 0;
 }
 
 main {

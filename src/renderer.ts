@@ -28,4 +28,5 @@
 
 import './styles/index.css';
 import './styles/diagnosis-prob.css';
+import './styles/progress-bar.css';
 import './app';

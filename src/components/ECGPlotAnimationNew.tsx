@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LinePath } from '@visx/shape';
 
-export type Point = { x: number; y: number }
+export type Point = { x: number; y: number };
 export type Line = Point[];
 export type Lines = Line[];
 
@@ -14,7 +14,7 @@ export interface ECGPlotAnimationProps {
 };
 
 type SHAPE_RENDER_TYPE = 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision';
-const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'geometricPrecision';
+const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'optimizeSpeed';
 const STROKE_WIDTH = 1.2;
 
 const xMap = (p: Point) => p.x;
@@ -35,6 +35,8 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onComplete
     [yMap, (p: Point) => p.y + height]
   ), [height]);
 
+  const progress = segIndex / ecgSegments.length;
+
   const onSegmentEnd = useCallback(() => {
     window.cancelAnimationFrame(animationId.current);
     i.current = elapsed.current = animationId.current = 0;
@@ -44,7 +46,10 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onComplete
   }, [onComplete]);
 
   useEffect(() => {
+    if (segIndex >= ecgSegments.length) return;
+    
     const [lead1, lead2] = ecgSegments[segIndex];
+    console.log()
     let previousTimeStamp: number | undefined;
 
     const animStep = (timestamp: number) => {
@@ -105,6 +110,14 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onComplete
         ))))}
         {segIndex > 0 && <rect fill="#00000037" width={width / 2} height={height * 2} />}
       </svg>
+      
+      
+      <div className='pb-container'>
+        <p style={{ width: '5ch', textAlign: 'right' }}>{Math.floor(progress * 100)}%</p>
+        <div className='pb-track'>
+          <div className='pb-thumb' style={{ transform: `scaleX(${progress})` }} />
+        </div>
+      </div>
     </div>
   );
 }

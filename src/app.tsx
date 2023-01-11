@@ -34,12 +34,12 @@ function App() {
     { disease: 'PVC', active: false },
   ]);
   const [diagnosis, setDiagnosis] = useState([
-    { disease: 'SR', threshold: 0.6, prob: 0.2 },
-    { disease: 'AF', threshold: 0.8, prob: 0.3 },
-    { disease: 'AFL', threshold: 0.8, prob: 0.3 },
-    { disease: 'LBBB', threshold: 0.9, prob: 0.3 },
-    { disease: 'RBBB', threshold: 0.95, prob: 0.5 },
-    { disease: 'PVC', threshold: 0.45, prob: 0.98 },
+    { disease: 'SR', threshold: 0.6, prob: 0 },
+    { disease: 'AF', threshold: 0.8, prob: 0 },
+    { disease: 'AFL', threshold: 0.8, prob: 0 },
+    { disease: 'LBBB', threshold: 0.9, prob: 0 },
+    { disease: 'RBBB', threshold: 0.95, prob: 0 },
+    { disease: 'PVC', threshold: 0.45, prob: 0 },
   ]);
 
   // STATE DERIVATES
