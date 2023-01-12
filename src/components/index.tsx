@@ -1,5 +1,5 @@
-export * from './ECGPlotAnimationNew';
+export * from './ECGPlotAnimation';
 export * from './DiagnosisTable';
 export * from './DiagnosisProbs';
 export * from './CurrentDiagnosis';
-export * from './DiagnorisResultModal';
+export * from './DiagnosisResultModal';

@@ -1,26 +1,18 @@
 import { useDisclosure } from '@mantine/hooks';
-import { useCallback, useState } from 'react';
-import useGlobalStore, { fileDataSelector } from '../globalState';
-import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation, Line } from '../components';
-import { DISEASES, HEIGHT, SEGMENT_LENGTH, SPEED_ARRAY, WIDTH } from '../settings';
+import { useCallback, useMemo, useState } from 'react';
+import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { Button, Group } from '@mantine/core';
-
-function getEcgSegmentsPoints(ecgSegments: number[][][], width: number, height: number): Line[][] {
-  const xStep = width / SEGMENT_LENGTH;
-  const hMulti = height / 15;
-  const halfHeight = height / 2;
-
-  return ecgSegments.map(seg => seg.map(lead => lead.map((y: number, i: number) => ({
-    x: i * xStep,
-    y: y * -hMulti + halfHeight,
-  }))));
-}
+import { segmentsTransform } from '../utils';
+import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation } from '../components';
+import { DISEASES, HEIGHT, SPEED_ARRAY, WIDTH, SEGMENT_LENGTH } from '../settings';
 
 export function DemonstratorPage() {
   const data = useGlobalStore(fileDataSelector);
-  const ecgSegments = getEcgSegmentsPoints(data.sampleSegments, WIDTH / 2, HEIGHT);
+  const sampleSegments = useMemo(() => (
+    segmentsTransform(data.sampleSegments, WIDTH / SEGMENT_LENGTH / 2, HEIGHT / 15, HEIGHT / 2)
+  ), [data]);
   
-  return <Demonstrator ecgSegments={ecgSegments} thresholds={data.thresholds} predictions={data.predictions} />
+  return <Demonstrator ecgSegments={sampleSegments} thresholds={data.thresholds} predictions={data.predictions} />
 }
 
 interface DemonstratorProps {

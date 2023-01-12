@@ -1,2 +1,3 @@
 export * from './SampleSelectorPage';
-export * from './DimostratorPage';
+export * from './DemonstratorPage';
+export * from './DisplayEventsPage';

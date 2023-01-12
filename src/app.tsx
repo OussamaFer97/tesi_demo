@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { DemonstratorPage, SampleSelectorPage } from './pages';
+import { DemonstratorPage, DisplayEventsPage, SampleSelectorPage } from './pages';
 
 const routes = [
   {
@@ -10,6 +10,10 @@ const routes = [
   {
     path: '/demonstrator',
     element: <DemonstratorPage />,
+  },
+  {
+    path: '/display-events',
+    element: <DisplayEventsPage />,
   }
 ];
 

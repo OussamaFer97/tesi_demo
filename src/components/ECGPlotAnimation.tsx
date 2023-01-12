@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Point, Line } from '../globalState';
 import { LinePath } from '@visx/shape';
 import ProgressBar from './ProgressBar';
 
-export type Point = { x: number; y: number };
-export type Line = Point[];
-export type Lines = Line[];
-
 export interface ECGPlotAnimationProps {
-  ecgSegments: Lines[];
+  ecgSegments: Line[][];
   speed: number;
   width: number;
   height: number;
@@ -23,7 +20,7 @@ const xMap = (p: Point) => p.x;
 const yMap = (p: Point) => p.y;
 
 export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentComplete, onComplete }: ECGPlotAnimationProps) {
-  const [linesArray, setLines] = useState<[Lines, Lines][]>([[[], []]]);
+  const [linesArray, setLines] = useState<Line[][][]>([[[], []]]);
   const [segIndex, setSegIndex] = useState(0);
   const i = useRef(0);
   const elapsed = useRef(0);
