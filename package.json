@@ -44,10 +44,13 @@
     "@emotion/react": "^11.10.5",
     "@heroicons/react": "^2.0.13",
     "@mantine/core": "^5.10.0",
+    "@mantine/dropzone": "^5.10.0",
     "@mantine/hooks": "^5.10.0",
     "@visx/shape": "^2.17.0",
     "electron-squirrel-startup": "^1.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.6.2",
+    "zustand": "^4.3.1"
   }
 }

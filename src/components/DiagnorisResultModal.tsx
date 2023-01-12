@@ -1,5 +1,6 @@
 import { Alert, Button, Group, List, Modal, Title } from '@mantine/core';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 export interface DiagnosisResultModelProps {
   diagnosis: {
@@ -18,6 +19,7 @@ const NAME_MAP: { [key: string]: string } = {
 };
 
 export function DiagnosisResultModal({ diagnosis }: DiagnosisResultModelProps) {
+  const navigate = useNavigate();
   const found = diagnosis.filter(d => d.active && d.disease !== 'SR').map(d => d.disease);
 
   return (
@@ -30,7 +32,7 @@ export function DiagnosisResultModal({ diagnosis }: DiagnosisResultModelProps) {
 
       <Group position='right' mt='md'>
         <Button size='sm' color='orange'>Display events</Button>
-        <Button size='sm'>Go Home</Button>
+        <Button size='sm' onClick={() => navigate('/')}>Load new sample</Button>
       </Group>
     </Modal>
   );

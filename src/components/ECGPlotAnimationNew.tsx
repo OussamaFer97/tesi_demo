@@ -38,19 +38,20 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentC
   ), [height]);
   const progress = useMemo(() => Math.min(segIndex / ecgSegments.length, 1), [segIndex, ecgSegments]);
 
-  const onSegmentEnd = useCallback(() => {
+  const onSegmentEnd = useCallback((nextIndex: number) => {
     // reset -> animation, segment progress (i) and elapsed time
     window.cancelAnimationFrame(animationId.current);
     i.current = elapsed.current = animationId.current = 0;
 
     // update lines, increment segment index, execute complete callback
-    setLines(currLines => [currLines.pop(), [[], []]]);
-    setSegIndex(i => {
-      const newIndex =  i + 1;
-      const cb = newIndex < ecgSegments.length ? () => onSegmentComplete(newIndex) : onComplete;
-      queueMicrotask(cb);
-      return newIndex;
-    });
+    const isLast = nextIndex >= ecgSegments.length;
+    if (!isLast) {
+      onSegmentComplete(nextIndex);
+      setLines(currLines => [currLines.pop(), [[], []]]);
+    } else {
+      onComplete();
+    }
+    setSegIndex(nextIndex);
   }, [onComplete, onSegmentComplete, ecgSegments]);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentC
       }
 
       if (i.current >= lead1.length) {
-        onSegmentEnd();
+        onSegmentEnd(segIndex + 1);
         return;
       }
       
@@ -114,7 +115,6 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentC
         ))))}
         {segIndex > 0 && <rect fill="#00000037" width={width / 2} height={height * 2} />}
       </svg>
-      
       
       <ProgressBar progress={progress} />
     </div>
