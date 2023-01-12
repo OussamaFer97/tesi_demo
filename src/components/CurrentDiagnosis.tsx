@@ -5,14 +5,11 @@ export interface CurrentDiagnosisProps {
 export function CurrentDiagnosis({ diagnosis }: CurrentDiagnosisProps) {
   return (
     <div>
-      <h3>Current Diagnosis</h3>
+      <h3 style={{ marginBottom: 10 }}>Current Diagnosis</h3>
       <div style={{ display: 'flex', width: 280, justifyContent: 'space-between' }}>
-        <ClassStatus name='SR' active={false} />
-        <ClassStatus name='AF' active={true} />
-        <ClassStatus name='AFL' active={false} />
-        <ClassStatus name='LBBB' active={false} />
-        <ClassStatus name='RBBB' active={false} />
-        <ClassStatus name='PVC' active={false} />
+        {diagnosis.map(d => (
+          <ClassStatus key={d.disease} name={d.disease} active={d.active} />
+        ))}
       </div>
     </div>
   );

@@ -1,97 +1,118 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Button, Group } from '@mantine/core';
 import ReactDOM from 'react-dom/client';
-import { ECGPlotAnimation, Line, DiagnosisTable, DiagnosisProbs, CurrentDiagnosis } from './components';
+import { queries } from './api';
+import { ECGPlotAnimation, Line, DiagnosisProbs, CurrentDiagnosis, DiagnosisResultModal } from './components';
+import { useDisclosure } from '@mantine/hooks';
 
+const DISEASES = ['SR', 'AF', 'PR', 'LBBB', 'RBBB', 'PVC'];
 const FRAME_TICKS = 360 * 10;
 const WIDTH = 1440;
 const HEIGHT = 200;
-const SPEED_ARRAY = [0.2, 0.5, 1, 5, 10];
+const SPEED_ARRAY = [0.5, 1, 5, 10];
 
-function getEcgData(record_name: string, width: number, height: number): [Line, Line] {
-  const data: [number[], number[]] = require(`./recordings/${record_name}.json`);
-
+function getEcgSegmentsPoints(ecgSegments: number[][][], width: number, height: number): Line[][] {
   const xStep = width / FRAME_TICKS;
   const hMulti = height / 15;
   const halfHeight = height / 2;
-  const toPoint = (y: number, i: number) => ({
+
+  return ecgSegments.map(seg => seg.map(lead => lead.map((y: number, i: number) => ({
     x: i * xStep,
     y: y * -hMulti + halfHeight,
-  });
-
-  return [data[0].map(toPoint), data[1].map(toPoint)];
+  }))));
 }
 
-function App() {
-  // STATE DEFINITION
+function RecordingSelector() {
   const [recordName, setRecordName] = useState('100');
-  const [speed, setSpeed] = useState(1);
-  const [totDiagnosis, setTotDiagnosis] = useState([
-    { disease: 'SR', active: false },
-    { disease: 'AF', active: false },
-    { disease: 'AFL', active: false },
-    { disease: 'LBBB', active: false },
-    { disease: 'RBBB', active: false },
-    { disease: 'PVC', active: false },
-  ]);
-  const [diagnosis, setDiagnosis] = useState([
-    { disease: 'SR', threshold: 0.6, prob: 0 },
-    { disease: 'AF', threshold: 0.8, prob: 0 },
-    { disease: 'AFL', threshold: 0.8, prob: 0 },
-    { disease: 'LBBB', threshold: 0.9, prob: 0 },
-    { disease: 'RBBB', threshold: 0.95, prob: 0 },
-    { disease: 'PVC', threshold: 0.45, prob: 0 },
-  ]);
+  const [ecgSegments, setEcgSegments] = useState(null);
+  const [thresholds, setThresholds] = useState(null);
+  const [predictions, setPredictions] = useState(null);
 
-  // STATE DERIVATES
-  const ecgData = useMemo(() => getEcgData(recordName, WIDTH / 2, HEIGHT), [recordName]);
-  const ecgSegments = useMemo(() => {
-    const segmentsCount = Math.floor(ecgData[0].length / FRAME_TICKS);
-    return [...Array(segmentsCount).keys()].map(i => {
+  useEffect(() => {
+    // TODO: check for error
+    queries.getThresholds().then(setThresholds);
+  }, []);
+
+  useEffect(() => {
+    const data: [number[], number[]] = require(`./recordings/${recordName}.json`);
+    // const segmentsCount = Math.floor(data[0].length / FRAME_TICKS);
+    const segmentsCount = 3;
+
+    const rawEcgSegments = [...Array(segmentsCount).keys()].map(i => {
       const start = i * FRAME_TICKS;
       const stop = start + FRAME_TICKS;
-      const data = ecgData.map(leadData => leadData.slice(start, stop));
-      const startX = data[0][0].x;
-      return data.map(leadData => leadData.map(({ x, y }) => ({ x: x - startX, y })));
+      return data.map(leadData => leadData.slice(start, stop));
     });
-  }, [ecgData]);
+    const ecgSegmentsPoints = getEcgSegmentsPoints(rawEcgSegments, WIDTH / 2, HEIGHT);
 
-  const onSegmentComplete = useCallback(() => {
-    setDiagnosis(d => d.map(v => ({ ...v, prob: Math.random() })));
-  }, [ecgData]);
+    // TODO: check for error
+    queries.predictSegments(rawEcgSegments).then(setPredictions);
+    setEcgSegments(ecgSegmentsPoints);
+  }, [recordName]);
+
+  if (ecgSegments === null || thresholds === null || predictions === null) return null;
+  return <Dimostrator ecgSegments={ecgSegments} thresholds={thresholds} predictions={predictions} />;
+}
+
+export interface DimostratorProps {
+  ecgSegments: Line[][];
+  thresholds: number[];
+  predictions: number[][];
+}
+
+function Dimostrator({ ecgSegments, thresholds, predictions }: DimostratorProps) {
+  const [completed, handlers] = useDisclosure(false);
+  const [speed, setSpeed] = useState(1);
+  const [totDiagnosis, setTotDiagnosis] = useState(DISEASES.map(d => ({ disease: d, active: false })));
+  const [diagnosis, setDiagnosis] = useState(DISEASES.map((d, i) => ({ disease: d, threshold: thresholds[i], prob: 0 })));
+
+  const onSegmentComplete = useCallback((segmentIndex: number) => {
+    const segmentPredictions = predictions[segmentIndex];
+
+    setTotDiagnosis((totD) => totD.map((d, i) => ({
+      ...d, active: d.active || segmentPredictions[i] >= thresholds[i],
+    })));
+    setDiagnosis(d => d.map((v, i) => ({
+      ...v,
+      prob: segmentPredictions[i],
+    })));
+  }, [predictions, thresholds]);
 
   return (
     <main style={{ width: WIDTH }}>
-      <div style={{ display: 'flex', gap: 50 }}>
-        <DiagnosisTable patientId={recordName} />
+      <Group position='apart' align='flex-end' mb='md'>
         <CurrentDiagnosis diagnosis={totDiagnosis} />
-      </div>
 
-      <div className='speed-container'>
-        {SPEED_ARRAY.map(s => (
-          <button key={s} className={`speed-button ${speed === s && 'active'}`} onClick={() => setSpeed(s)}>
-            {s}x
-          </button>
-        ))}
-      </div>
+        <Group spacing='sm'>
+          {SPEED_ARRAY.map(s => (
+            <Button key={s} onClick={() => setSpeed(s)} color={speed === s ? 'blue' : 'gray'} size='sm' radius='xs' compact>
+              {s}x
+            </Button>
+          ))}
+        </Group>
+      </Group>
 
       <ECGPlotAnimation
         ecgSegments={ecgSegments}
         speed={speed}
         width={WIDTH}
         height={HEIGHT}
-        onComplete={onSegmentComplete}
+        onComplete={handlers.open}
+        onSegmentComplete={onSegmentComplete}
       />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', height: 350, marginTop: 35 }}>
         <DiagnosisProbs width={450} diagnosis={diagnosis} />
       </div>
+
+      {completed && <DiagnosisResultModal diagnosis={totDiagnosis} />}
     </main>
   );
 }
 
 function render() {
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(<App />);
+  root.render(<RecordingSelector />);
 }
 
 render();
