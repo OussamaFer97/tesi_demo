@@ -14,23 +14,9 @@ p, h3 {
   margin: 0;
 }
 
-table {
-  border-collapse: collapse;
-}
-
-table thead {
-  text-align: left;
-}
-
 line {
   stroke: #00000022;
   stroke-width: 2px;
-}
-
-th, td {
-  padding: 5px 10px;
-  min-width: 100px;
-  border-top: 1px solid #222;
 }
 
 .red-glow {

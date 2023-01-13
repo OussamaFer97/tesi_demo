@@ -6,3 +6,41 @@ export function segmentsTransform(sampleSegments: Line[][], xScale: number, ySca
     y: p.y * yScale + yTranslate,
   }))));
 }
+
+export function normalizeSegments(sampleSegments: number[][][]) {
+  const leadCount = sampleSegments[0].length;
+  const leadsTot = new Array(leadCount).fill(0);
+  let n = 0;
+
+  // Compute mean for each lead
+  for (let segIndex=0; segIndex < sampleSegments.length; segIndex++) {
+    for (let leadIndex=0; leadIndex < leadCount; leadIndex++) {
+      const leadData = sampleSegments[segIndex][leadIndex];
+      for (let i=0; i < leadData.length; i++) {
+        leadsTot[leadIndex] += leadData[i];
+        n++;
+      }
+    }
+  }
+  if (n % leadCount !== 0) throw `Invalid n counter in function "normalize"`;
+  n /= leadCount;
+  const means = leadsTot.map(tot => tot / n);
+
+  // Compute standard deviation for each lead
+  const accumulator = new Array(leadCount).fill(0);
+  for (let segIndex=0; segIndex < sampleSegments.length; segIndex++) {
+    for (let leadIndex=0; leadIndex < leadCount; leadIndex++) {
+      const leadData = sampleSegments[segIndex][leadIndex];
+      for (let i=0; i < leadData.length; i++) {
+        accumulator[leadIndex] += Math.pow(leadData[i] - means[leadIndex], 2);
+      }
+    }
+  }
+  const stds = accumulator.map(a => Math.sqrt(a / n));
+
+  return sampleSegments.map(seg => seg.map((lead, leadIndex) => {
+    const mu = means[leadIndex];
+    const std = stds[leadIndex];
+    return lead.map(val => (val - mu) / std);
+  }));
+}

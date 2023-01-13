@@ -39,6 +39,11 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
     })));
   }, [predictions, thresholds]);
 
+  const skipAnimation = useCallback(() => {
+    setSpeed(0);
+    handlers.open();
+  }, [handlers]);
+
   return (
     <main style={{ width: WIDTH }}>
       <Group position='apart' align='flex-end' mb='md'>
@@ -50,6 +55,7 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
               {s}x
             </Button>
           ))}
+          <Button onClick={skipAnimation} color='gray' size='sm' radius='xs' compact>Skip</Button>
         </Group>
       </Group>
 
@@ -66,7 +72,7 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
         <DiagnosisProbs width={450} diagnosis={diagnosis} />
       </div>
 
-      {completed && <DiagnosisResultModal diagnosis={totDiagnosis} />}
+      <DiagnosisResultModal show={completed} />
     </main>
   );
 }

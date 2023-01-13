@@ -1,25 +1,23 @@
-import { Timeline, Text, Group } from '@mantine/core';
+import { Timeline, Text, Group, Affix, ActionIcon } from '@mantine/core';
 import { LinePath } from '@visx/shape';
 import { useMemo, useState } from 'react';
 import { SEGMENT_LENGTH } from '../settings';
-import useGlobalStore, { fileDataSelector, Point } from '../globalState';
+import useGlobalStore, { fileDataSelector, Point, Event } from '../globalState';
+import { HomeIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom';
 
 type SHAPE_RENDER_TYPE = 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision';
 const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'geometricPrecision';
 const STROKE_WIDTH = 2;
 
 const WIDTH = 1280;
-const HEIGHT = 300;
+const HEIGHT = 350;
 const X_SCALE = WIDTH / SEGMENT_LENGTH;
-const Y_SCALE = HEIGHT / 15;
-const HEIGHT_TRANSLATE1 = HEIGHT / 2;
-const HEIGHT_TRANSLATE2 = HEIGHT / 2 * 3;
+const Y_SCALE = HEIGHT / 17;
+const HEIGHT_TRANSLATES = [HEIGHT / 2, HEIGHT / 2 * 3];
 
-const xMap = (p: Point) => p.x * X_SCALE;
-const yMaps = [
-  (p: Point) => p.y * Y_SCALE + HEIGHT_TRANSLATE1,
-  (p: Point) => p.y * Y_SCALE + HEIGHT_TRANSLATE2,
-];
+const xMap = (p: Point) => p.x;
+const yMap = (p: Point) => p.y;
 
 const BULLET_STYLE: React.CSSProperties = {
   position: 'absolute',
@@ -38,8 +36,31 @@ const padNumber = (n: number, l: number) => (''+n).padStart(l, '0');
 const formatSeconds = (s: number) => `${padNumber(Math.floor(s / 60), 2)}:${padNumber(s % 60, 2)}`;
 
 export function DisplayEventsPage() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const navigate = useNavigate();
   const { events } = useGlobalStore(fileDataSelector);
+  const transformedEvents = useMemo(() => events.map((e) => ({
+    ...e,
+    data: e.data.map((lead, leadIndex) => lead.map(p => ({
+      x: p.x * X_SCALE,
+      y: p.y * Y_SCALE + HEIGHT_TRANSLATES[leadIndex],
+    }))),
+  })), [events]);
+
+  return (
+    <>
+      <DisplayEventsBody events={transformedEvents} />
+      
+      <Affix position={{ bottom: 20, right: 20 }}>
+        <ActionIcon variant='filled' color='blue' size='lg' onClick={() => navigate('/')}>
+          <HomeIcon width='18' />
+        </ActionIcon>
+      </Affix>
+    </>
+  );
+}
+
+function DisplayEventsBody({ events }: { events: Event[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const currEvent = useMemo(() => events[activeIndex], [activeIndex]);
 
   return (
@@ -68,7 +89,7 @@ export function DisplayEventsPage() {
             data={line}
             shapeRendering={SHAPE_RENDERING}
             x={xMap}
-            y={yMaps[i]}
+            y={yMap}
           />
         ))}
       </svg>

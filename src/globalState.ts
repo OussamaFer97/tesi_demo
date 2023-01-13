@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { FileWithPath } from '@mantine/dropzone';
-import { queries } from './api';
-import { DISEASES, SEGMENT_DURATION, SEGMENT_LENGTH } from './settings';
+import { DISEASES, SEGMENT_DURATION } from './settings';
+import { normalizeSegments } from './utils';
+
+export interface RawFileData {
+  segments: number[][][];
+  predictions: number[][];
+  thresholds: number[];
+}
 
 export type Point = { x: number; y: number };
 export type Line = Point[];
@@ -28,26 +34,14 @@ export interface GlobalStoreState {
 const useGlobalStore = create<GlobalStoreState>((set) => ({
   loadFile: async (file: FileWithPath) => {
     const textData = await file.text();
-    const sample: number[][] = JSON.parse(textData);
+    const { segments, predictions, thresholds }: RawFileData = JSON.parse(textData);
 
-    // const segmentCount = Math.floor(data[0].length / SEGMENT_LENGTH);
-    const segmentCount = 20;
-
-    const rawSampleSegments = [...Array(segmentCount).keys()].map(i => {
-      const start = i * SEGMENT_LENGTH;
-      const stop = start + SEGMENT_LENGTH;
-      return sample.map((leadData: number[]) => leadData.slice(start, stop));
-    });
-
-    const [predictions, thresholds] = await Promise.all([
-      queries.predictSegments(rawSampleSegments),
-      queries.getThresholds(),
-    ]);
-
-    const sampleSegments = rawSampleSegments.map(seg => seg.map(lead => lead.map((y: number, i: number) => ({
+    const normalizedSegments = normalizeSegments(segments);
+    const sampleSegments = normalizedSegments.map(seg => seg.map(lead => lead.map((y: number, i: number) => ({
       x: i,
       y: -y,
     }))));
+
     const events = findEvents(sampleSegments, predictions, thresholds);
 
     set({ fileData: { sampleSegments, thresholds, predictions, events } });
@@ -82,7 +76,7 @@ function findEvents(sampleSegments: Line[][], predictions: number[][], threshold
     }
   });
 
-  if (acc.length > 0) {
+  if (acc.length > 0 && accPred !== '') {
     const startSeconds = accStartIndex * SEGMENT_DURATION;
     const endSeconds = sampleSegments.length * SEGMENT_DURATION;
     events.push({ data: acc, diagnosis: accPred.split(','), startSeconds, endSeconds });
