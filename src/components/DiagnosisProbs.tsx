@@ -33,11 +33,11 @@ export function DiagnosisProbs({ width, diagnosis }: DiagnosisProbsProps) {
   );
 }
 
-const getBarColor = (th: number, p: number) => p >= th ? '#C92A2A' : '#838383';
+const getBarColor = (th: number, p: number, name: string) => p >= th ? (name !== 'SR' ? '#C92A2A' : '#087f5b') : '#838383';
 const Bar = ({ disease, threshold, prob }: Diagnosis) => (
   <div className='single-prob-container'>
     <div className='prob-bar'>
-      <div className='filled-bar' style={{ transform: `scaleY(${prob})`, backgroundColor: getBarColor(threshold, prob) }} />
+      <div className='filled-bar' style={{ transform: `scaleY(${prob})`, backgroundColor: getBarColor(threshold, prob, disease) }} />
       <hr className='th-line' style={{ bottom: `${threshold * 100}%` }} />
     </div>
     <p>{disease}</p>

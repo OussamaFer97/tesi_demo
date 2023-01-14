@@ -3,16 +3,12 @@ import { useCallback, useMemo, useState } from 'react';
 import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { Button, Group } from '@mantine/core';
 import { segmentsTransform } from '../utils';
-import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation } from '../components';
+import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation, ProgressBar } from '../components';
 import { DISEASES, HEIGHT, SPEED_ARRAY, WIDTH, SEGMENT_LENGTH } from '../settings';
 
 export function DemonstratorPage() {
   const data = useGlobalStore(fileDataSelector);
-  const sampleSegments = useMemo(() => (
-    segmentsTransform(data.sampleSegments, WIDTH / SEGMENT_LENGTH / 2, HEIGHT / 15, HEIGHT / 2)
-  ), [data]);
-  
-  return <Demonstrator ecgSegments={sampleSegments} thresholds={data.thresholds} predictions={data.predictions} />
+  return <Demonstrator ecgSegments={data.sampleSegments} thresholds={data.thresholds} predictions={data.predictions} />
 }
 
 interface DemonstratorProps {
@@ -24,12 +20,15 @@ interface DemonstratorProps {
 export function Demonstrator({ ecgSegments, thresholds, predictions }: DemonstratorProps) {
   const [completed, handlers] = useDisclosure(false);
   const [speed, setSpeed] = useState(1);
+  const [progress, setProgress] = useState(0);
   const [totDiagnosis, setTotDiagnosis] = useState(DISEASES.map(d => ({ disease: d, active: false })));
   const [diagnosis, setDiagnosis] = useState(DISEASES.map((d, i) => ({ disease: d, threshold: thresholds[i], prob: 0 })));
 
   const onSegmentComplete = useCallback((segmentIndex: number) => {
     const segmentPredictions = predictions[segmentIndex];
+    const progress = Math.min(segmentIndex / predictions.length, 1);
 
+    setProgress(progress);
     setTotDiagnosis((totD) => totD.map((d, i) => ({
       ...d, active: d.active || segmentPredictions[i] >= thresholds[i],
     })));
@@ -62,11 +61,11 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
       <ECGPlotAnimation
         ecgSegments={ecgSegments}
         speed={speed}
-        width={WIDTH}
-        height={HEIGHT}
         onComplete={handlers.open}
         onSegmentComplete={onSegmentComplete}
       />
+
+      <ProgressBar progress={progress} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', height: 350, marginTop: 35 }}>
         <DiagnosisProbs width={450} diagnosis={diagnosis} />

@@ -1,39 +1,45 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Point, Line } from '../globalState';
 import { LinePath } from '@visx/shape';
-import ProgressBar from './ProgressBar';
+import { scaleLinear } from '@visx/scale';
+import { WIDTH, HEIGHT, SEGMENT_LENGTH, SEGMENT_DURATION, SHAPE_RENDER_TYPE, LEAD_NAMES } from '../settings';
+import { PlotLeadNames, PlotSignalsBaseline, PlotTimeAxis } from './PlotComponents';
+import { segmentsTransform } from '../utils';
 
 export interface ECGPlotAnimationProps {
   ecgSegments: Line[][];
   speed: number;
-  width: number;
-  height: number;
   onSegmentComplete: (i: number) => void;
   onComplete: () => void;
 };
 
-type SHAPE_RENDER_TYPE = 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision';
+const LEFT_AXIS_WIDTH = 27;
+const GRAPH_WIDTH = WIDTH - LEFT_AXIS_WIDTH;
+const HALF_WIDTH = GRAPH_WIDTH / 2;
+const FULL_HEIGHT = HEIGHT * 2;
+
 const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'optimizeSpeed';
 const STROKE_WIDTH = 1.2;
 
-const xMap = (p: Point) => p.x;
-const yMap = (p: Point) => p.y;
+const xMaps = [(p: Point) => p.x, (p: Point) => p.x + HALF_WIDTH];
+const yMaps = [(p: Point) => p.y, (p: Point) => p.y + HEIGHT];
 
-export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentComplete, onComplete }: ECGPlotAnimationProps) {
+export function ECGPlotAnimation({ ecgSegments: rawEcgSegments, speed, onSegmentComplete, onComplete }: ECGPlotAnimationProps) {
   const [linesArray, setLines] = useState<Line[][][]>([[[], []]]);
   const [segIndex, setSegIndex] = useState(0);
   const i = useRef(0);
   const elapsed = useRef(0);
   const animationId = useRef(0);
 
-  const xMaps = useMemo(() => {
-    const halfWidth = width / 2;
-    return [xMap, (p: Point) => p.x + halfWidth];
-  }, [width]);
-  const yMaps = useMemo(() => (
-    [yMap, (p: Point) => p.y + height]
-  ), [height]);
-  const progress = useMemo(() => Math.min(segIndex / ecgSegments.length, 1), [segIndex, ecgSegments]);
+  const ecgSegments = useMemo(() => (
+    segmentsTransform(rawEcgSegments, GRAPH_WIDTH / SEGMENT_LENGTH / 2, HEIGHT / 15, HEIGHT / 2)
+  ), [rawEcgSegments]);
+  const xAxisScale = useMemo(() => (
+    scaleLinear<number>({
+      range: [0, GRAPH_WIDTH - 1],
+      domain: [segIndex * SEGMENT_DURATION, (segIndex + 2) * SEGMENT_DURATION],
+    })
+  ), [segIndex]);
 
   const onSegmentEnd = useCallback((nextIndex: number) => {
     // reset -> animation, segment progress (i) and elapsed time
@@ -52,7 +58,7 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentC
   }, [onComplete, onSegmentComplete, ecgSegments]);
 
   useEffect(() => {
-    if (segIndex >= ecgSegments.length) return;
+    if (speed <= 0 || segIndex >= ecgSegments.length) return;
 
     const [lead1, lead2] = ecgSegments[segIndex];
     let previousTimeStamp: number | undefined;
@@ -89,31 +95,37 @@ export function ECGPlotAnimation({ ecgSegments, speed, width, height, onSegmentC
     
     animationId.current = window.requestAnimationFrame(animStep);
     return () => window.cancelAnimationFrame(animationId.current);
-  }, [ecgSegments, segIndex, speed, width, onSegmentEnd]);
+  }, [ecgSegments, segIndex, speed, onSegmentEnd]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none', touchAction: 'none' }}>
-      <svg width={width} height={height * 2}>
-        <rect fill="#dee2e649" width={width} height={height * 2} rx={4} />
-        <line x1='0' x2='100%' y1='25%' y2='25%' />
-        <line x1='0' x2='100%' y1='75%' y2='75%' />
-        <line x1='50%' x2='50%' y1='0%' y2='100%' />
-        {linesArray.map((seg, sIndex) => seg.map((lines, i) => lines.map((line, j) => (
-          <LinePath
-            key={`line-${sIndex}-${j}-${i}`}
-            fill="transparent"
-            stroke="#001F4A"
-            strokeWidth={STROKE_WIDTH}
-            data={line}
-            shapeRendering={SHAPE_RENDERING}
-            x={xMaps[sIndex]}
-            y={yMaps[i]}
-          />
-        ))))}
-        {segIndex > 0 && <rect fill="#00000037" width={width / 2} height={height * 2} />}
-      </svg>
+      <div style={{ display: 'flex' }}>
+        <PlotLeadNames width={LEFT_AXIS_WIDTH} height={FULL_HEIGHT} names={LEAD_NAMES} />
+
+        <svg width={GRAPH_WIDTH} height={FULL_HEIGHT}>
+          <rect fill="#dee2e649" width='100%' height='100%' />
+
+          <PlotSignalsBaseline count={2} />
+          <line x1='50%' x2='50%' y1='0%' y2='100%' stroke='#00000022' strokeWidth={2} />
+
+          {linesArray.map((seg, segIndex) => seg.map((lead, leadIndex) => lead.map((line, i) => (
+            <LinePath
+              key={`line-${segIndex}-${i}-${leadIndex}`}
+              data={line}
+              x={xMaps[segIndex]}
+              y={yMaps[leadIndex]}
+              fill='transparent'
+              stroke='#001F4A'
+              strokeWidth={STROKE_WIDTH}
+              shapeRendering={SHAPE_RENDERING}
+            />
+          ))))}
+
+          {segIndex > 0 && <rect fill="#00000037" width='50%' height='100%' />}
+        </svg>
+      </div>
       
-      <ProgressBar progress={progress} />
+      <PlotTimeAxis top={0} left={LEFT_AXIS_WIDTH} scale={xAxisScale} />
     </div>
   );
 }

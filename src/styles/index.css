@@ -14,11 +14,6 @@ p, h3 {
   margin: 0;
 }
 
-line {
-  stroke: #00000022;
-  stroke-width: 2px;
-}
-
 .red-glow {
   box-shadow:
   inset 0 0 5px #c92a2a,
@@ -28,4 +23,15 @@ line {
   inset -2px 0 30px #f03e3e,
   0 0 5px #ff8787,
   -1px 0 8px #ffc9c9;
+}
+
+.green-glow {
+  box-shadow:
+  inset 0 0 5px #087f5b,
+  inset 2px 0 8px #0ca678,
+  inset -2px 0 8px #0ca678,
+  inset 2px 0 30px #0ca678,
+  inset -2px 0 30px #0ca678,
+  0 0 5px #38d9a9,
+  -1px 0 8px #96f2d7;
 }

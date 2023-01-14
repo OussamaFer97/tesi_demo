@@ -44,3 +44,6 @@ export function normalizeSegments(sampleSegments: number[][][]) {
     return lead.map(val => (val - mu) / std);
   }));
 }
+
+export const padNumber = (n: number, l: number) => (''+n).padStart(l, '0');
+export const formatSeconds = (s: number) => `${padNumber(Math.floor(s / 60), 2)}:${padNumber(s % 60, 2)}`;

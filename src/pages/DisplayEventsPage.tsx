@@ -1,18 +1,24 @@
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Timeline, Text, Group, Affix, ActionIcon } from '@mantine/core';
 import { LinePath } from '@visx/shape';
-import { useMemo, useState } from 'react';
-import { SEGMENT_LENGTH } from '../settings';
+import { LEAD_NAMES, SEGMENT_LENGTH, SHAPE_RENDER_TYPE } from '../settings';
 import useGlobalStore, { fileDataSelector, Point, Event } from '../globalState';
 import { HomeIcon } from '@heroicons/react/24/solid';
-import { useNavigate } from 'react-router-dom';
+import { formatSeconds } from '../utils';
+import { scaleLinear } from '@visx/scale';
+import { PlotLeadNames, PlotSignalsBaseline, PlotTimeAxis } from '../components';
 
-type SHAPE_RENDER_TYPE = 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision';
 const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'geometricPrecision';
-const STROKE_WIDTH = 2;
+const STROKE_WIDTH = 1.7;
 
 const WIDTH = 1280;
+const LEFT_AXIS_WIDTH = 27;
+const GRAPH_WIDTH = WIDTH - LEFT_AXIS_WIDTH;
 const HEIGHT = 350;
-const X_SCALE = WIDTH / SEGMENT_LENGTH;
+const FULL_HEIGHT = HEIGHT * 2;
+
+const X_SCALE = GRAPH_WIDTH / SEGMENT_LENGTH;
 const Y_SCALE = HEIGHT / 17;
 const HEIGHT_TRANSLATES = [HEIGHT / 2, HEIGHT / 2 * 3];
 
@@ -31,9 +37,6 @@ const BULLET_STYLE: React.CSSProperties = {
   cursor: 'pointer',
   outline: 'none',
 };
-
-const padNumber = (n: number, l: number) => (''+n).padStart(l, '0');
-const formatSeconds = (s: number) => `${padNumber(Math.floor(s / 60), 2)}:${padNumber(s % 60, 2)}`;
 
 export function DisplayEventsPage() {
   const navigate = useNavigate();
@@ -63,6 +66,13 @@ function DisplayEventsBody({ events }: { events: Event[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const currEvent = useMemo(() => events[activeIndex], [activeIndex]);
 
+  const xAxisScale = useMemo(() => (
+    scaleLinear<number>({
+      range: [0, GRAPH_WIDTH - 1],
+      domain: [0, 10],
+    })
+  ), []);
+
   return (
     <Group position='apart' align='flex-start' style={{ width: 1560, margin: '0 auto' }}>
       <Timeline color='orange' bulletSize={28}>
@@ -77,22 +87,32 @@ function DisplayEventsBody({ events }: { events: Event[] }) {
           </Timeline.Item>
         ))}
       </Timeline>
+      
+      <div style={{ width: WIDTH }}>
+        <div style={{ display: 'flex' }}>
+          <PlotLeadNames width={LEFT_AXIS_WIDTH} height={FULL_HEIGHT} names={LEAD_NAMES} />
 
-      <svg width={WIDTH} height={HEIGHT * 2}>
-        <rect fill="#dee2e649" width='100%' height='100%' rx={4} />
-        {currEvent.data.map((line, i) => (
-          <LinePath
-            key={`line-${i}`}
-            fill="transparent"
-            stroke="#001F4A"
-            strokeWidth={STROKE_WIDTH}
-            data={line}
-            shapeRendering={SHAPE_RENDERING}
-            x={xMap}
-            y={yMap}
-          />
-        ))}
-      </svg>
+          <svg width={GRAPH_WIDTH} height={FULL_HEIGHT}>
+            <rect fill="#dee2e649" width='100%' height='100%' />
+            <PlotSignalsBaseline count={2} />
+
+            {currEvent.data.map((line, i) => (
+              <LinePath
+                key={`line-${i}`}
+                fill="transparent"
+                stroke="#001F4A"
+                strokeWidth={STROKE_WIDTH}
+                data={line}
+                shapeRendering={SHAPE_RENDERING}
+                x={xMap}
+                y={yMap}
+              />
+            ))}
+          </svg>
+        </div>
+
+        <PlotTimeAxis top={-2} left={LEFT_AXIS_WIDTH} scale={xAxisScale} />
+      </div>
     </Group>
   );
 }
