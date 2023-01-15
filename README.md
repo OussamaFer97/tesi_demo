@@ -32,7 +32,12 @@ yarn
 yarn start
 ```
 
-## Building distributables
+## Building platform installer
 ```
 yarn make
+```
+
+## Building portable
+```
+yarn package
 ```
