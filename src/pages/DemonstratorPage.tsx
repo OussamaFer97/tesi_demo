@@ -1,10 +1,10 @@
+import { useCallback, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-import { useCallback, useMemo, useState } from 'react';
-import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { Button, Group } from '@mantine/core';
-import { segmentsTransform } from '../utils';
+import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation, ProgressBar } from '../components';
-import { DISEASES, HEIGHT, SPEED_ARRAY, WIDTH, SEGMENT_LENGTH } from '../settings';
+import LeadPlacement from '../assets/leadPlacement';
+import { DISEASES, SPEED_ARRAY, WIDTH } from '../settings';
 
 export function DemonstratorPage() {
   const data = useGlobalStore(fileDataSelector);
@@ -67,9 +67,12 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
 
       <ProgressBar progress={progress} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', height: 350, marginTop: 35 }}>
+      <Group mt='xl' style={{ height: 350 }}>
         <DiagnosisProbs width={450} diagnosis={diagnosis} />
-      </div>
+        <Group position='center' align='center' style={{ flex: 1 }}>
+          <LeadPlacement />
+        </Group>
+      </Group>
 
       <DiagnosisResultModal show={completed} />
     </main>

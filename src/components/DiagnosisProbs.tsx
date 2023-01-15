@@ -11,7 +11,7 @@ export interface DiagnosisProbsProps {
 
 export function DiagnosisProbs({ width, diagnosis }: DiagnosisProbsProps) {
   return (
-    <div style={{ display: 'flex', gap: 40 }}>
+    <div style={{ display: 'flex', gap: 40, height: '100%' }}>
       <div className='bar-axis'>
         <div className='bar-axis-tick' style={{ marginTop: -8 }}>
           <p>1.0</p>

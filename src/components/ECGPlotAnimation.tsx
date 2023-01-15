@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Point, Line } from '../globalState';
 import { LinePath } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
-import { WIDTH, HEIGHT, SEGMENT_LENGTH, SEGMENT_DURATION, SHAPE_RENDER_TYPE, LEAD_NAMES } from '../settings';
+import { WIDTH, HEIGHT, SEGMENT_LENGTH, SEGMENT_DURATION, SHAPE_RENDER_TYPE, LEAD_NAMES, PLOT_LINE_COLOR } from '../settings';
 import { PlotLeadNames, PlotSignalsBaseline, PlotTimeAxis } from './PlotComponents';
 import { segmentsTransform } from '../utils';
 
@@ -115,7 +115,7 @@ export function ECGPlotAnimation({ ecgSegments: rawEcgSegments, speed, onSegment
               x={xMaps[segIndex]}
               y={yMaps[leadIndex]}
               fill='transparent'
-              stroke='#001F4A'
+              stroke={PLOT_LINE_COLOR}
               strokeWidth={STROKE_WIDTH}
               shapeRendering={SHAPE_RENDERING}
             />

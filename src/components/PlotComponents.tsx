@@ -23,7 +23,7 @@ const AXIS_COLOR = '#000000';
 export function PlotTimeAxis({ top, left, scale }: { top: number, left: number, scale: AxisScale<number> }) {
   const width = scale.range()[1];
   return (
-    <svg width={width} height={20} overflow='visible'>
+    <svg width={width} height={20} overflow='visible' style={{ userSelect: 'none' }}>
       <AxisBottom
         top={top}
         left={left + 1}
@@ -45,6 +45,6 @@ export function PlotSignalsBaseline({ count }: { count: number }) {
   }, [count]);
 
   return (
-    <>{yArray.map(y => <line x1='0' x2='100%' y1={y} y2={y} stroke='#00000022' strokeWidth={2} />)}</>
+    <>{yArray.map(y => <line key={y} x1='0' x2='100%' y1={y} y2={y} stroke='#00000022' strokeWidth={2} />)}</>
   );
 }

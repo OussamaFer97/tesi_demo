@@ -46,4 +46,4 @@ export function normalizeSegments(sampleSegments: number[][][]) {
 }
 
 export const padNumber = (n: number, l: number) => (''+n).padStart(l, '0');
-export const formatSeconds = (s: number) => `${padNumber(Math.floor(s / 60), 2)}:${padNumber(s % 60, 2)}`;
+export const formatSeconds = (s: number) => `${padNumber(Math.floor(s / 60), 2)}:${padNumber(Math.round(s) % 60, 2)}`;

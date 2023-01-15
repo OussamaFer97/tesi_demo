@@ -19,3 +19,5 @@ export const WIDTH = 1440;
 export const HEIGHT = 200;
 
 export const SPEED_ARRAY = [0, 0.5, 1, 5, 10];
+
+export const PLOT_LINE_COLOR = '#001F4A';

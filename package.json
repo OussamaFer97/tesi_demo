@@ -47,6 +47,8 @@
     "@mantine/dropzone": "^5.10.0",
     "@mantine/hooks": "^5.10.0",
     "@visx/axis": "^3.0.0",
+    "@visx/brush": "^3.0.0",
+    "@visx/pattern": "^3.0.0",
     "@visx/scale": "^3.0.0",
     "@visx/shape": "^2.17.0",
     "electron-squirrel-startup": "^1.0.0",
