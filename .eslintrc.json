@@ -12,5 +12,9 @@
     "plugin:import/electron",
     "plugin:import/typescript"
   ],
+  "rules": {
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-var-requires": "off"
+  },
   "parser": "@typescript-eslint/parser"
 }

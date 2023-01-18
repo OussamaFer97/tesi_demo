@@ -1,4 +1,4 @@
-const LeadPlacement = (props: any) => (
+const LeadPlacement = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     width={152}
     height={320}

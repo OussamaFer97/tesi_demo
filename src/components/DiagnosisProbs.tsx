@@ -7,7 +7,7 @@ interface Diagnosis {
 export interface DiagnosisProbsProps {
   width: number;
   diagnosis: Diagnosis[];
-};
+}
 
 export function DiagnosisProbs({ width, diagnosis }: DiagnosisProbsProps) {
   return (

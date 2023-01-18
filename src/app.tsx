@@ -1,9 +1,12 @@
+import './styles/index.css';
+import './styles/diagnosis-prob.css';
+import './styles/progress-bar.css';
+
 import ReactDOM from 'react-dom/client';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import { DemonstratorPage, DisplayEventsPage, SampleSelectorPage } from './pages';
 
-const ROUTER_FACTORY = createMemoryRouter;
-const ROUTES = [
+export const ROUTES = [
   {
     path: '/',
     element: <SampleSelectorPage />,
@@ -18,9 +21,7 @@ const ROUTES = [
   }
 ];
 
-function render() {
+export function render(routerFactory: any) {
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(<RouterProvider router={ROUTER_FACTORY(ROUTES)} />);
+  root.render(<RouterProvider router={routerFactory(ROUTES)} />);
 }
-
-render();

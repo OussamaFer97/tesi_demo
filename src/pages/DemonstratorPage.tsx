@@ -3,8 +3,8 @@ import { useDisclosure } from '@mantine/hooks';
 import { Button, Group } from '@mantine/core';
 import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation, ProgressBar } from '../components';
-import LeadPlacement from '../assets/leadPlacement';
-import { DISEASES, SPEED_ARRAY, WIDTH } from '../settings';
+import LeadPlacement from '../assets/LeadPlacement';
+import { DISEASES, SPEED_ARRAY } from '../settings';
 
 export function DemonstratorPage() {
   const data = useGlobalStore(fileDataSelector);
@@ -44,7 +44,7 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
   }, [handlers]);
 
   return (
-    <main style={{ width: WIDTH }}>
+    <main style={{ width: ECGPlotAnimation.WIDTH }}>
       <Group position='apart' align='flex-end' mb='md'>
         <CurrentDiagnosis diagnosis={totDiagnosis} />
 

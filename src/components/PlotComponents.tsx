@@ -17,7 +17,7 @@ export function PlotLeadNames({ width, height, names }: { width: number, height:
       ))}
     </svg>
   );
-};
+}
 
 const AXIS_COLOR = '#000000';
 export function PlotTimeAxis({ top, left, scale }: { top: number, left: number, scale: AxisScale<number> }) {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Point, Line } from '../globalState';
 import { LinePath } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
-import { WIDTH, HEIGHT, SEGMENT_LENGTH, SEGMENT_DURATION, SHAPE_RENDER_TYPE, LEAD_NAMES, PLOT_LINE_COLOR } from '../settings';
+import { SEGMENT_LENGTH, SEGMENT_DURATION, SHAPE_RENDER_TYPE, LEAD_NAMES, PLOT_LINE_COLOR, IS_WEB } from '../settings';
 import { PlotLeadNames, PlotSignalsBaseline, PlotTimeAxis } from './PlotComponents';
 import { segmentsTransform } from '../utils';
 
@@ -11,11 +11,13 @@ export interface ECGPlotAnimationProps {
   speed: number;
   onSegmentComplete: (i: number) => void;
   onComplete: () => void;
-};
+}
 
+const WIDTH = 1440;
 const LEFT_AXIS_WIDTH = 27;
 const GRAPH_WIDTH = WIDTH - LEFT_AXIS_WIDTH;
 const HALF_WIDTH = GRAPH_WIDTH / 2;
+const HEIGHT = IS_WEB ? 180 : 200;
 const FULL_HEIGHT = HEIGHT * 2;
 
 const SHAPE_RENDERING: SHAPE_RENDER_TYPE = 'optimizeSpeed';
@@ -129,3 +131,6 @@ export function ECGPlotAnimation({ ecgSegments: rawEcgSegments, speed, onSegment
     </div>
   );
 }
+
+ECGPlotAnimation.WIDTH = WIDTH;
+ECGPlotAnimation.HEIGHT = HEIGHT;
