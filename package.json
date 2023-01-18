@@ -1,8 +1,8 @@
 {
-  "name": "tesi_demo",
-  "productName": "tesi_demo",
+  "name": "ecg-arrhythmia-detector",
+  "productName": "ECG Arrhythmia Detector",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Demo desktop application that shows how the multi-label arrhythmia detection system works.",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
