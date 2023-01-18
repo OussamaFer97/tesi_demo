@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Timeline, Text, Group, Affix, ActionIcon } from '@mantine/core';
 import { LinePath } from '@visx/shape';
@@ -54,17 +54,23 @@ const BULLET_STYLE: React.CSSProperties = {
 
 export function DisplayEventsPage() {
   const navigate = useNavigate();
-  const { events } = useGlobalStore(fileDataSelector);
-  const transformedEvents = useMemo(() => events.map((e) => ({
+  const fileData = useGlobalStore(fileDataSelector);
+  const transformedEvents = useMemo(() => (fileData ? fileData.events : []).map((e) => ({
     ...e,
     data: e.data.map((lead, leadIndex) => lead.map(p => ({
       x: p.x,
       y: p.y * Y_SCALE + HEIGHT_TRANSLATES[leadIndex],
     }))),
-  })), [events]);
+  })), [fileData]);
 
+  useEffect(() => {
+    if (fileData === undefined)
+      navigate('/');
+  }, [fileData]);
+
+  if (fileData === undefined) return null;
   return (
-    <>
+    <div style={{ paddingTop: '2rem' }}>
       <DisplayEventsBody events={transformedEvents} />
       
       <Affix position={{ bottom: 20, right: 20 }}>
@@ -72,7 +78,7 @@ export function DisplayEventsPage() {
           <HomeIcon width='18' />
         </ActionIcon>
       </Affix>
-    </>
+    </div>
   );
 }
 

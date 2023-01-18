@@ -1,13 +1,22 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { Button, Group } from '@mantine/core';
 import useGlobalStore, { fileDataSelector, Line } from '../globalState';
 import { CurrentDiagnosis, DiagnosisProbs, DiagnosisResultModal, ECGPlotAnimation, ProgressBar } from '../components';
 import LeadPlacement from '../assets/LeadPlacement';
 import { DISEASES, SPEED_ARRAY } from '../settings';
+import { useNavigate } from 'react-router-dom';
 
 export function DemonstratorPage() {
   const data = useGlobalStore(fileDataSelector);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (data === undefined)
+      navigate('/');
+  }, [data]);
+
+  if (data === undefined) return null;
   return <Demonstrator ecgSegments={data.sampleSegments} thresholds={data.thresholds} predictions={data.predictions} />
 }
 
@@ -44,7 +53,7 @@ export function Demonstrator({ ecgSegments, thresholds, predictions }: Demonstra
   }, [handlers]);
 
   return (
-    <main style={{ width: ECGPlotAnimation.WIDTH }}>
+    <main style={{ width: ECGPlotAnimation.WIDTH, paddingTop: '2rem' }}>
       <Group position='apart' align='flex-end' mb='md'>
         <CurrentDiagnosis diagnosis={totDiagnosis} />
 
