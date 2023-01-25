@@ -41,3 +41,13 @@ yarn make
 ```
 yarn package
 ```
+
+## Executing web development
+```
+yarn webstart
+```
+
+## Build html/css/js/assets for web deployment
+```
+yarn webbuild
+```

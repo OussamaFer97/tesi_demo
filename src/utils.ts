@@ -1,4 +1,6 @@
-import { Line } from "./globalState";
+import { Line } from './globalState';
+
+export const emptyPromise = () => new Promise(r=>r(null));
 
 export function segmentsTransform(sampleSegments: Line[][], xScale: number, yScale: number, yTranslate: number) {
   return sampleSegments.map(seg => seg.map(lead => lead.map(p => ({
@@ -7,7 +9,7 @@ export function segmentsTransform(sampleSegments: Line[][], xScale: number, ySca
   }))));
 }
 
-export function normalizeSegments(sampleSegments: number[][][]) {
+export async function normalizeSegments(sampleSegments: number[][][]) {
   const leadCount = sampleSegments[0].length;
   const leadsTot = new Array(leadCount).fill(0);
   let n = 0;
@@ -21,6 +23,7 @@ export function normalizeSegments(sampleSegments: number[][][]) {
         n++;
       }
     }
+    await emptyPromise();  // free js (avoid ui freeze)
   }
   if (n % leadCount !== 0) throw `Invalid n counter in function "normalize"`;
   n /= leadCount;
@@ -35,6 +38,7 @@ export function normalizeSegments(sampleSegments: number[][][]) {
         accumulator[leadIndex] += Math.pow(leadData[i] - means[leadIndex], 2);
       }
     }
+    await emptyPromise();  // free js (avoid ui freeze)
   }
   const stds = accumulator.map(a => Math.sqrt(a / n));
 

@@ -36,7 +36,7 @@ const useGlobalStore = create<GlobalStoreState>((set) => ({
     const textData = await file.text();
     const { segments, predictions, thresholds }: RawFileData = JSON.parse(textData);
 
-    const normalizedSegments = normalizeSegments(segments);
+    const normalizedSegments = await normalizeSegments(segments);
     const sampleSegments = normalizedSegments.map(seg => seg.map(lead => lead.map((y: number, i: number) => ({
       x: i,
       y: -y,
